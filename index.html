@@ -331,24 +331,31 @@
                 return;
             }
 
-            // 创建Blob对象
-            const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+            // 创建结果显示
+            const resultsDiv = document.createElement('div');
+            resultsDiv.style.padding = '20px';
+            resultsDiv.style.margin = '20px 0';
+            resultsDiv.style.backgroundColor = '#f5f5f5';
+            resultsDiv.style.borderRadius = '5px';
             
-            // 创建临时下载链接
-            const downloadLink = document.createElement('a');
-            downloadLink.href = URL.createObjectURL(blob);
-            downloadLink.download = 'survey_results.json';
+            // 计算总次数
+            const totals = results.reduce((acc, item) => {
+                acc[item.human_preferred]++;
+                return acc;
+            }, { claude: 0, gpt: 0 });
             
-            // 添加到body并触发点击
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
+            let resultText = '您的偏好结果：\n\n';
+            results.forEach((item, index) => {
+                resultText += `对话${index + 1} - ${item.human_preferred === 'claude' ? 'Claude' : 'GPT'}\n`;
+            });
             
-            // 清理
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(downloadLink.href);
+            resultText += `\n总计：\nClaude: ${totals.claude}次\nGPT: ${totals.gpt}次`;
             
-            // 显示成功消息
-            alert('结果已下载！');
+            resultsDiv.innerHTML = `<pre>${resultText}</pre>`;
+            document.body.appendChild(resultsDiv);
+            
+            // 滚动到结果区域
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
         // 初始化显示
